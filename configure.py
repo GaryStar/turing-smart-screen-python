@@ -262,7 +262,7 @@ class TuringConfigWindow:
                                            foreground='#f00')
 
         self.edit_theme_btn = ttk.Button(self.window, text="Edit theme", command=lambda: self.on_theme_editor_click())
-        self.edit_theme_btn.place(x=80, y=440, height=40, width=130)
+        self.edit_theme_btn.place(x=80, y=455, height=40, width=130)
 
         self.save_btn = ttk.Button(self.window, text="Save settings", command=lambda: self.on_save_click())
         self.save_btn.place(x=10, y=500, height=40, width=130)
