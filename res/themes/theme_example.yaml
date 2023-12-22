@@ -4,6 +4,11 @@
 
 # NOTE: Every HW sensor is hidden in this example, to show a sensor change 'SHOW: False' to 'SHOW: True'
 ---
+# If you indicate @ with your GitHub username, there will be a hyperlink to your GitHub profile in the Config. Wizard
+# Otherwise, you can just indicate any text e.g. author: "Your Name"
+# You can also remove the line if you don't want to be credited
+author: "@your_GitHub_username"
+
 display:
   # Specify the display size in inch for this theme: 3.5" (default) or 5"
   DISPLAY_SIZE: 3.5"
@@ -273,6 +278,17 @@ STATS:
         FONT_COLOR: 200, 200, 200
         # BACKGROUND_COLOR: 50, 50, 50
         BACKGROUND_IMAGE: background.png
+    FPS:
+      TEXT:
+        SHOW: False
+        SHOW_UNIT: True
+        X: 115
+        Y: 231
+        FONT: roboto/Roboto-Bold.ttf
+        FONT_SIZE: 13
+        FONT_COLOR: 200, 200, 200
+        # BACKGROUND_COLOR: 50, 50, 50
+        BACKGROUND_IMAGE: background.png
   MEMORY:
     # In seconds. Longer intervals cause this to refresh more slowly.
     # Setting to lower values will display near real time data,
@@ -357,6 +373,16 @@ STATS:
         # BACKGROUND_COLOR: 132, 154, 165
         BACKGROUND_IMAGE: background.png
       FREE:
+        SHOW: FALSE
+        SHOW_UNIT: True
+        X: 182
+        Y: 129
+        FONT: jetbrains-mono/JetBrainsMono-Bold.ttf
+        FONT_SIZE: 23
+        FONT_COLOR: 255, 255, 255
+        # BACKGROUND_COLOR: 132, 154, 165
+        BACKGROUND_IMAGE: background.png
+      TOTAL:
         SHOW: FALSE
         SHOW_UNIT: True
         X: 182

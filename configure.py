@@ -23,6 +23,7 @@
 import os
 import subprocess
 import sys
+import webbrowser
 
 MIN_PYTHON = (3, 8)
 if sys.version_info < MIN_PYTHON:
@@ -64,6 +65,7 @@ from library.utils import WEATHER_UNITS
 TURING_MODEL = "Turing Smart Screen"
 USBPCMONITOR_MODEL = "UsbPCMonitor"
 XUANFANG_MODEL = "XuanFang rev. B & flagship"
+KIPYE_MODEL = "Kipye Qiye Smart Display"
 SIMULATED_MODEL = "Simulated screen"
 
 SIZE_3_5_INCH = "3.5\""
@@ -74,22 +76,22 @@ SIZE_2_1_INCH = "2.1\""
 size_list = (SIZE_3_5_INCH, SIZE_5_INCH)
 
 # Maps between config.yaml values and GUI description
-# revision_to_model_map = {'A': TURING_MODEL, 'B': XUANFANG_MODEL, 'C': TURING_MODEL, 'SIMU': SIMULATED_MODEL,
-#                         'SIMU5': SIMULATED_MODEL}
 revision_and_size_to_model_map = {
     ('A', SIZE_3_5_INCH): TURING_MODEL,  # Can also be UsbPCMonitor 3.5, does not matter since protocol is the same
     ('A', SIZE_5_INCH): USBPCMONITOR_MODEL,
     ('B', SIZE_3_5_INCH): XUANFANG_MODEL,
     ('C', SIZE_5_INCH): TURING_MODEL,
+    ('D', SIZE_3_5_INCH): KIPYE_MODEL,
     ('SIMU', SIZE_3_5_INCH): SIMULATED_MODEL,
     ('SIMU5', SIZE_5_INCH): SIMULATED_MODEL,
 }
 model_and_size_to_revision_map = {
     (TURING_MODEL, SIZE_3_5_INCH): 'A',
-    (TURING_MODEL, SIZE_5_INCH): 'C',
     (USBPCMONITOR_MODEL, SIZE_3_5_INCH): 'A',
     (USBPCMONITOR_MODEL, SIZE_5_INCH): 'A',
     (XUANFANG_MODEL, SIZE_3_5_INCH): 'B',
+    (TURING_MODEL, SIZE_5_INCH): 'C',
+    (KIPYE_MODEL, SIZE_3_5_INCH): 'D',
     (SIMULATED_MODEL, SIZE_3_5_INCH): 'SIMU',
     (SIMULATED_MODEL, SIZE_5_INCH): 'SIMU5',
 }
@@ -157,6 +159,8 @@ class TuringConfigWindow:
         self.theme_preview_img = None
         self.theme_preview = ttk.Label(self.window)
         self.theme_preview.place(x=10, y=10)
+
+        self.theme_author = ttk.Label(self.window)
 
         sysmon_label = ttk.Label(self.window, text='Display configuration', font='bold')
         sysmon_label.place(x=320, y=0)
@@ -284,6 +288,17 @@ class TuringConfigWindow:
                 theme_preview = theme_preview.resize((280, 420), Image.Resampling.LANCZOS)
             self.theme_preview_img = ImageTk.PhotoImage(theme_preview)
             self.theme_preview.config(image=self.theme_preview_img)
+
+            theme_data = get_theme_data(self.theme_cb.get())
+            author_name = theme_data.get('author', 'unknown')
+            self.theme_author.config(text="Author: " + author_name)
+            if author_name.startswith("@"):
+                self.theme_author.config(foreground="#a3a3ff", cursor="hand2")
+                self.theme_author.bind("<Button-1>", lambda e: webbrowser.open_new_tab("https://github.com/" + author_name[1:]))
+            else:
+                self.theme_author.config(foreground="#a3a3a3", cursor="")
+                self.theme_author.unbind("<Button-1>")
+            self.theme_author.place(x=10, y=self.theme_preview_img.height() + 15)
 
     def load_config_values(self):
         with open("config.yaml", "rt", encoding='utf8') as stream:

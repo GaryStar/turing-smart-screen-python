@@ -73,6 +73,8 @@ else:
     except:
         os._exit(0)
 
+import library.sensors.sensors_custom as sensors_custom
+
 
 def get_theme_file_path(name):
     if name:
@@ -104,7 +106,8 @@ def display_themed_value(theme_data, value, min_size=0, unit=''):
         font_size=theme_data.get("FONT_SIZE", 10),
         font_color=font_color,
         background_color=theme_data.get("BACKGROUND_COLOR", (255, 255, 255)),
-        background_image=get_theme_file_path(theme_data.get("BACKGROUND_IMAGE", None))
+        background_image=get_theme_file_path(theme_data.get("BACKGROUND_IMAGE", None)),
+        anchor="lt"
     )
 
 
@@ -134,7 +137,7 @@ def display_themed_progress_bar(theme_data, value):
     )
 
 
-def display_themed_radial_bar(theme_data, value, min_size=0, unit=''):
+def display_themed_radial_bar(theme_data, value, min_size=0, unit='', custom_text=None):
     if not theme_data.get("SHOW", False):
         return
     bar_color=theme_data.get("BAR_COLOR", (0, 0, 0))
@@ -148,9 +151,12 @@ def display_themed_radial_bar(theme_data, value, min_size=0, unit=''):
         pass
 
     if theme_data.get("SHOW_TEXT", False):
-        text = f"{{:>{min_size}}}".format(value)
-        if theme_data.get("SHOW_UNIT", True) and unit:
-            text += str(unit)
+        if custom_text:
+            text = custom_text
+        else:
+            text = f"{{:>{min_size}}}".format(value)
+            if theme_data.get("SHOW_UNIT", True) and unit:
+                text += str(unit)
     else:
         text = ""
 
@@ -248,12 +254,12 @@ class CPU:
         )
 
 
-def display_gpu_stats(load, memory_percentage, memory_used_mb, temperature):
+def display_gpu_stats(load, memory_percentage, memory_used_mb, temperature, fps):
     theme_gpu_data = config.THEME_DATA['STATS']['GPU']
+
     gpu_percent_graph_data = theme_gpu_data['PERCENTAGE']['GRAPH']
     gpu_percent_radial_data = theme_gpu_data['PERCENTAGE']['RADIAL']
     gpu_percent_text_data = theme_gpu_data['PERCENTAGE']['TEXT']
-
     if math.isnan(load):
         load = 0
         if gpu_percent_graph_data['SHOW'] or gpu_percent_text_data['SHOW'] or gpu_percent_radial_data['SHOW']:
@@ -284,6 +290,12 @@ def display_gpu_stats(load, memory_percentage, memory_used_mb, temperature):
         if gpu_temp_text_data['SHOW']:
             logger.warning("Your GPU temperature is not supported yet")
             gpu_temp_text_data['SHOW'] = False
+
+    gpu_fps_text_data = theme_gpu_data['FPS']['TEXT']
+    if fps < 0:
+        if gpu_fps_text_data['SHOW']:
+            logger.warning("Your GPU FPS is not supported yet")
+            gpu_fps_text_data['SHOW'] = False
 
     # logger.debug(f"GPU Load: {load}")
     display_themed_progress_bar(gpu_percent_graph_data, load)
@@ -324,12 +336,20 @@ def display_gpu_stats(load, memory_percentage, memory_used_mb, temperature):
         unit="°C"
     )
 
+    display_themed_value(
+        theme_data=gpu_fps_text_data,
+        value=int(fps),
+        min_size=4,
+        unit=" FPS"
+    )
+
 
 class Gpu:
     @staticmethod
     def stats():
         load, memory_percentage, memory_used_mb, temperature = sensors.Gpu.stats()
-        display_gpu_stats(load, memory_percentage, memory_used_mb, temperature)
+        fps = sensors.Gpu.fps()
+        display_gpu_stats(load, memory_percentage, memory_used_mb, temperature, fps)
 
     @staticmethod
     def is_available():
@@ -379,6 +399,14 @@ class Memory:
             value=approximate_size(int(sensors.Memory.virtual_free())),
             # value=int(sensors.Memory.virtual_free() / 1000000),
             min_size=4,
+            # unit=" M"
+        )
+
+        display_themed_value(
+            theme_data=memory_stats_theme_data['VIRTUAL']['TOTAL'],
+            # value=int((sensors.Memory.virtual_free() + sensors.Memory.virtual_used()) / 1000000),
+            value=approximate_size(int((sensors.Memory.virtual_free() + sensors.Memory.virtual_used()))),
+            min_size=5,
             # unit=" M"
         )
 
@@ -496,6 +524,44 @@ class Date:
             theme_data=hour_theme_data,
             value=f"{babel.dates.format_time(date_now, format=time_format, locale=lc_time)}"
         )
+
+
+class Custom:
+    @staticmethod
+    def stats():
+        for custom_stat in config.THEME_DATA['STATS']['CUSTOM']:
+            if custom_stat != "INTERVAL":
+
+                # Load the custom sensor class from sensors_custom.py based on the class name
+                try:
+                    custom_stat_class = getattr(sensors_custom, str(custom_stat))()
+                    string_value = custom_stat_class.as_string()
+                    numeric_value = custom_stat_class.as_numeric()
+                except:
+                    logger.error("Custom sensor class " + str(custom_stat) + " not found in sensors_custom.py")
+                    return
+
+                if not string_value:
+                    string_value = str(numeric_value)
+
+                # Display text
+                theme_data = config.THEME_DATA['STATS']['CUSTOM'][custom_stat].get("TEXT", None)
+                if theme_data and string_value:
+                    display_themed_value(theme_data=theme_data, value=string_value)
+
+                # Display graph from numeric value
+                theme_data = config.THEME_DATA['STATS']['CUSTOM'][custom_stat].get("GRAPH", None)
+                if theme_data and numeric_value:
+                    display_themed_progress_bar(theme_data=theme_data, value=numeric_value)
+
+                # Display radial from numeric and text value
+                theme_data = config.THEME_DATA['STATS']['CUSTOM'][custom_stat].get("RADIAL", None)
+                if theme_data and numeric_value and string_value:
+                    display_themed_radial_bar(
+                        theme_data=theme_data,
+                        value=numeric_value,
+                        custom_text=string_value
+                    )
 
 class Weather:
     @staticmethod

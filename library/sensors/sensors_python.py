@@ -116,6 +116,11 @@ class Gpu(sensors.Gpu):
             return math.nan, math.nan, math.nan, math.nan
 
     @staticmethod
+    def fps() -> int:
+        # Not supported by Python libraries
+        return -1
+
+    @staticmethod
     def is_available() -> bool:
         global DETECTED_GPU
         if GpuAmd.is_available():
@@ -166,6 +171,11 @@ class GpuNvidia(sensors.Gpu):
             temperature = math.nan
 
         return load, memory_percentage, memory_used_mb, temperature
+
+    @staticmethod
+    def fps() -> int:
+        # Not supported by Python libraries
+        return -1
 
     @staticmethod
     def is_available() -> bool:
@@ -231,6 +241,11 @@ class GpuAmd(sensors.Gpu):
 
             # Memory absolute (M) and relative (%) usage not supported by pyadl
             return load, math.nan, math.nan, temperature
+
+    @staticmethod
+    def fps() -> int:
+        # Not supported by Python libraries
+        return -1
 
     @staticmethod
     def is_available() -> bool:

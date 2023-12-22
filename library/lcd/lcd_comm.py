@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import copy
+import math
 import os
 import queue
 import sys
@@ -60,6 +62,12 @@ class LcdComm(ABC):
         # Mutex to protect the queue in case a thread want to add multiple requests (e.g. image data) that should not be
         # mixed with other requests in-between
         self.update_queue_mutex = threading.Lock()
+
+        # Create a cache to store opened images, to avoid opening and loading from the filesystem every time
+        self.image_cache = {}  # { key=path, value=PIL.Image }
+
+        # Create a cache to store opened fonts, to avoid opening and loading from the filesystem every time
+        self.font_cache = {}  # { key=(font, size), value=PIL.ImageFont }
 
     def get_width(self) -> int:
         if self.orientation == Orientation.PORTRAIT or self.orientation == Orientation.REVERSE_PORTRAIT:
@@ -193,7 +201,7 @@ class LcdComm(ABC):
         pass
 
     def DisplayBitmap(self, bitmap_path: str, x: int = 0, y: int = 0, width: int = 0, height: int = 0):
-        image = Image.open(bitmap_path)
+        image = self.open_image(bitmap_path)
         self.DisplayPILImage(image, x, y, width, height)
 
     def DisplayText(
@@ -206,7 +214,8 @@ class LcdComm(ABC):
             font_color: Tuple[int, int, int] = (0, 0, 0),
             background_color: Tuple[int, int, int] = (255, 255, 255),
             background_image: str = None,
-            align: str = 'left'
+            align: str = 'left',
+            anchor: str = None,
     ):
         # Convert text to bitmap using PIL and display it
         # Provide the background image path to display text with transparent background
@@ -233,24 +242,33 @@ class LcdComm(ABC):
             )
         else:
             # The text bitmap is created from provided background image : text with transparent background
-            text_image = Image.open(background_image)
+            text_image = self.open_image(background_image)
 
         # Get text bounding box
-        font = ImageFont.truetype("./res/fonts/" + font, font_size)
+        if (font, font_size) not in self.font_cache:
+            self.font_cache[(font, font_size)] = ImageFont.truetype("./res/fonts/" + font, font_size)
+        font = self.font_cache[(font, font_size)]
         d = ImageDraw.Draw(text_image)
-        left, top, text_width, text_height = d.textbbox((0, 0), text, font=font)
+        left, top, right, bottom = d.textbbox((x, y), text, font=font, align=align, anchor=anchor)
 
-        # Draw text with specified color & font, remove left/top margins
-        d.text((x - left, y - top), text, font=font, fill=font_color, align=align)
+        # textbbox may return float values, which is not good for the bitmap operations below.
+        # Let's extend the bounding box to the next whole pixel in all directions
+        left, top = math.floor(left), math.floor(top)
+        right, bottom = math.ceil(right), math.ceil(bottom)
 
-        # Crop text bitmap to keep only the text (also crop if text overflows display)
-        text_image = text_image.crop(box=(
-            x, y,
-            min(x + text_width - left, self.get_width()),
-            min(y + text_height - top, self.get_height())
-        ))
+        # Draw text onto the background image with specified color & font
+        d.text((x, y), text, font=font, fill=font_color, align=align, anchor=anchor)
 
-        self.DisplayPILImage(text_image, x, y)
+        # Restrict the dimensions if they overflow the display size
+        left = max(left, 0)
+        top = max(top, 0)
+        right = min(right, self.get_width())
+        bottom = min(bottom, self.get_height())
+
+        # Crop text bitmap to keep only the text
+        text_image = text_image.crop(box=(left, top, right, bottom))
+
+        self.DisplayPILImage(text_image, left, top)
 
     def DisplayProgressBar(self, x: int, y: int, width: int, height: int, min_value: int = 0, max_value: int = 100,
                            value: int = 50,
@@ -285,7 +303,7 @@ class LcdComm(ABC):
             bar_image = Image.new('RGB', (width, height), background_color)
         else:
             # A bitmap is created from provided background image
-            bar_image = Image.open(background_image)
+            bar_image = self.open_image(background_image)
 
             # Crop bitmap to keep only the progress bar background
             bar_image = bar_image.crop(box=(x, y, x + width, y + height))
@@ -363,7 +381,7 @@ class LcdComm(ABC):
             bar_image = Image.new('RGB', (diameter, diameter), background_color)
         else:
             # A bitmap is created from provided background image
-            bar_image = Image.open(background_image)
+            bar_image = self.open_image(background_image)
 
             # Crop bitmap to keep only the progress bar background
             bar_image = bar_image.crop(box=bbox)
@@ -455,3 +473,10 @@ class LcdComm(ABC):
                       font=font, fill=font_color)
 
         self.DisplayPILImage(bar_image, xc - radius, yc - radius)
+
+    # Load image from the filesystem, or get from the cache if it has already been loaded previously
+    def open_image(self, bitmap_path: str) -> Image:
+        if bitmap_path not in self.image_cache:
+            logger.debug("Bitmap " + bitmap_path + " is now loaded in the cache")
+            self.image_cache[bitmap_path] = Image.open(bitmap_path)
+        return copy.copy(self.image_cache[bitmap_path])

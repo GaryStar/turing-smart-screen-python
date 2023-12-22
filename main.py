@@ -148,6 +148,7 @@ if __name__ == "__main__":
                     logger.info("Computer is resuming from sleep, display will turn on")
                     display.turn_on()
                     if config.CONFIG_DATA["display"].get("REDRAW_BACKGROUND", False):
+                        # Some models have troubles displaying back the previous bitmap after being turned off/on
                         display.display_static_images()
                         display.display_static_text()
                         stats.Weather.stats()  # refresh is needed because time between automated refreshes is usually over 10-15 minutes
@@ -216,6 +217,7 @@ if __name__ == "__main__":
     scheduler.DiskStats()
     scheduler.NetStats()
     scheduler.DateStats()
+    scheduler.CustomStats()
     scheduler.WeatherStats()
     scheduler.QueueHandler()
 
