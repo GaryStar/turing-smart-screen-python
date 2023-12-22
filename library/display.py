@@ -2,6 +2,7 @@
 # https://github.com/mathoudebine/turing-smart-screen-python/
 import os
 import sys
+import builtins
 
 # Copyright (C) 2021-2023  Matthieu Houdebine (mathoudebine)
 #
@@ -125,9 +126,14 @@ class Display:
     def display_static_text(self):
         if config.THEME_DATA.get('static_text', False):
             for text in config.THEME_DATA['static_text']:
-                logger.debug(f"Drawing Text: {text}")
+                val=config.THEME_DATA['static_text'][text].get("TEXT")
+                try:
+                    val = eval(val, {}, {"names": builtins.names})
+                except Exception as e:
+                    pass
+                logger.debug(f"Drawing Text ({text}): {val}")
                 self.lcd.DisplayText(
-                    text=config.THEME_DATA['static_text'][text].get("TEXT"),
+                    text=str(val),
                     x=config.THEME_DATA['static_text'][text].get("X", 0),
                     y=config.THEME_DATA['static_text'][text].get("Y", 0),
                     font=config.THEME_DATA['static_text'][text].get("FONT", "roboto-mono/RobotoMono-Regular.ttf"),

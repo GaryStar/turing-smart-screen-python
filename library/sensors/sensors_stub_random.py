@@ -19,11 +19,15 @@
 # This file will use randomly generated data instead of real hardware sensors
 # For all platforms (Linux, Windows, macOS)
 
+import builtins
 import random
 from typing import Tuple
 
 import library.sensors.sensors as sensors
 
+builtins.names.Cpu = "Intel Core i7-9700K"
+builtins.names.Gpu = "Radeon (TM) RX 470"
+builtins.names.Memory = "Generic Memory"
 
 class Cpu(sensors.Cpu):
     @staticmethod

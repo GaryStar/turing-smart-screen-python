@@ -29,6 +29,9 @@ import sys
 
 import babel.dates
 from psutil._common import bytes2human
+from library.utils import approximate_size
+import requests
+from library.utils import WEATHER_UNITS
 
 import library.config as config
 from library.display import display
@@ -81,6 +84,13 @@ def get_theme_file_path(name):
 def display_themed_value(theme_data, value, min_size=0, unit=''):
     if not theme_data.get("SHOW", False):
         return
+    font_color=theme_data.get("FONT_COLOR", (0, 0, 0))
+    try:
+        alert = theme_data.get("ALERT_VALUE", None)
+        if alert is not None and value >= int(alert):
+            font_color=theme_data.get("ALERT_COLOR", (255, 0, 0))
+    except:
+        pass
 
     text = f"{{:>{min_size}}}".format(value)
     if theme_data.get("SHOW_UNIT", True) and unit:
@@ -92,7 +102,7 @@ def display_themed_value(theme_data, value, min_size=0, unit=''):
         y=theme_data.get("Y", 0),
         font=theme_data.get("FONT", "roboto-mono/RobotoMono-Regular.ttf"),
         font_size=theme_data.get("FONT_SIZE", 10),
-        font_color=theme_data.get("FONT_COLOR", (0, 0, 0)),
+        font_color=font_color,
         background_color=theme_data.get("BACKGROUND_COLOR", (255, 255, 255)),
         background_image=get_theme_file_path(theme_data.get("BACKGROUND_IMAGE", None))
     )
@@ -101,6 +111,13 @@ def display_themed_value(theme_data, value, min_size=0, unit=''):
 def display_themed_progress_bar(theme_data, value):
     if not theme_data.get("SHOW", False):
         return
+    bar_color=theme_data.get("BAR_COLOR", (0, 0, 0))
+    try:
+        alert = theme_data.get("ALERT_VALUE", None)
+        if alert is not None and value >= int(alert):
+            bar_color=theme_data.get("ALERT_COLOR", (255, 0, 0))
+    except:
+        pass
 
     display.lcd.DisplayProgressBar(
         x=theme_data.get("X", 0),
@@ -110,7 +127,7 @@ def display_themed_progress_bar(theme_data, value):
         value=int(value),
         min_value=theme_data.get("MIN_VALUE", 0),
         max_value=theme_data.get("MAX_VALUE", 100),
-        bar_color=theme_data.get("BAR_COLOR", (0, 0, 0)),
+        bar_color=bar_color,
         bar_outline=theme_data.get("BAR_OUTLINE", False),
         background_color=theme_data.get("BACKGROUND_COLOR", (255, 255, 255)),
         background_image=get_theme_file_path(theme_data.get("BACKGROUND_IMAGE", None))
@@ -120,6 +137,15 @@ def display_themed_progress_bar(theme_data, value):
 def display_themed_radial_bar(theme_data, value, min_size=0, unit=''):
     if not theme_data.get("SHOW", False):
         return
+    bar_color=theme_data.get("BAR_COLOR", (0, 0, 0))
+    font_color=theme_data.get("FONT_COLOR", (0, 0, 0))
+    try:
+        alert = theme_data.get("ALERT_VALUE", None)
+        if alert is not None and value >= int(alert):
+            bar_color=theme_data.get("ALERT_COLOR", (255, 0, 0))
+            font_color=theme_data.get("ALERT_COLOR", (255, 0, 0))
+    except:
+        pass
 
     if theme_data.get("SHOW_TEXT", False):
         text = f"{{:>{min_size}}}".format(value)
@@ -141,11 +167,11 @@ def display_themed_radial_bar(theme_data, value, min_size=0, unit=''):
         angle_sep=theme_data.get("ANGLE_SEP", 0),
         clockwise=theme_data.get("CLOCKWISE", False),
         value=value,
-        bar_color=theme_data.get("BAR_COLOR", (0, 0, 0)),
+        bar_color=bar_color,
         text=text,
         font=theme_data.get("FONT", "roboto-mono/RobotoMono-Regular.ttf"),
         font_size=theme_data.get("FONT_SIZE", 10),
-        font_color=theme_data.get("FONT_COLOR", (0, 0, 0)),
+        font_color=font_color,
         background_color=theme_data.get("BACKGROUND_COLOR", (0, 0, 0)),
         background_image=get_theme_file_path(theme_data.get("BACKGROUND_IMAGE", None))
     )
@@ -286,9 +312,9 @@ def display_gpu_stats(load, memory_percentage, memory_used_mb, temperature):
 
     display_themed_value(
         theme_data=gpu_mem_text_data,
-        value=int(memory_used_mb),
-        min_size=5,
-        unit=" M"
+        value=approximate_size(1000000 * int(memory_used_mb), True, 2),
+        min_size=8,
+        # unit=" M"
     )
 
     display_themed_value(
@@ -342,16 +368,18 @@ class Memory:
 
         display_themed_value(
             theme_data=memory_stats_theme_data['VIRTUAL']['USED'],
-            value=int(sensors.Memory.virtual_used() / 1000000),
-            min_size=5,
-            unit=" M"
+            value=approximate_size(int(sensors.Memory.virtual_used())),
+            # value=int(sensors.Memory.virtual_used() / 1000000),
+            min_size=4,
+            # unit=" M"
         )
 
         display_themed_value(
             theme_data=memory_stats_theme_data['VIRTUAL']['FREE'],
-            value=int(sensors.Memory.virtual_free() / 1000000),
-            min_size=5,
-            unit=" M"
+            value=approximate_size(int(sensors.Memory.virtual_free())),
+            # value=int(sensors.Memory.virtual_free() / 1000000),
+            min_size=4,
+            # unit=" M"
         )
 
 
@@ -468,3 +496,40 @@ class Date:
             theme_data=hour_theme_data,
             value=f"{babel.dates.format_time(date_now, format=time_format, locale=lc_time)}"
         )
+
+class Weather:
+    @staticmethod
+    def stats():
+        weather_data = ""
+        try:
+            weather_theme_data = config.THEME_DATA['STATS']['WEATHER']['TEXT']
+        except:
+            weather_theme_data = None
+        if HW_SENSORS == "STATIC":
+            weather_data = "Mist +1°C (-1°C) @21:40"
+        else:
+            city = config.CONFIG_DATA['config'].get('CITY', "")
+            api_key = config.CONFIG_DATA['config'].get('API_KEY', "")
+            units = config.CONFIG_DATA['config'].get('WEATHER_UNITS', "metric")
+            deg = WEATHER_UNITS.get(units, 'metric')
+            if weather_theme_data and city and api_key:
+                url = f'http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units={units}'
+                response = requests.get(url)
+                if response.status_code == 200:
+                    try:
+                        data = response.json()
+                        temp = f"{data['main']['temp']:.0f}{deg}"
+                        feel = f"{data['main']['feels_like']:.0f}{deg}"
+                        desc = data['weather'][0]['main']
+                        now = datetime.datetime.now()
+                        time = f"@{now.hour:02d}:{now.minute:02d}"
+                        weather_data = f"{desc} {temp} ({feel}) {time}    "
+                    except Exception as e:
+                        logger.error(str(e))
+                        weather_data = "Error fetching weather"
+                else:
+                    logger.error(response.text)
+                    weather_data = response.json().get('message')
+
+        if weather_theme_data and weather_data:
+            display_themed_value(theme_data=weather_theme_data, value=weather_data)

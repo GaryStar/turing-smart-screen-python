@@ -20,6 +20,7 @@
 # Useful for theme editor
 # For all platforms (Linux, Windows, macOS)
 
+import builtins
 from typing import Tuple
 
 import library.sensors.sensors as sensors
@@ -35,6 +36,9 @@ MEMORY_TOTAL_SIZE_GB = 64
 GPU_MEM_TOTAL_SIZE_GB = 32
 NETWORK_SPEED_BYTES = 1061000000
 
+builtins.names.Cpu = "Intel Core i7-9700K"
+builtins.names.Gpu = "Radeon (TM) RX 470"
+builtins.names.Memory = "16 G Generic Memory"
 
 class Cpu(sensors.Cpu):
     @staticmethod

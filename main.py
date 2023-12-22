@@ -60,6 +60,11 @@ except:
     except:
         os._exit(0)
 
+import builtins
+import library.config as config
+from library.utils import Names
+builtins.names = Names()
+
 from library.log import logger
 import library.scheduler as scheduler
 from library.display import display
@@ -142,6 +147,10 @@ if __name__ == "__main__":
                 elif wParam == win32con.PBT_APMRESUMEAUTOMATIC:
                     logger.info("Computer is resuming from sleep, display will turn on")
                     display.turn_on()
+                    if config.CONFIG_DATA["display"].get("REDRAW_BACKGROUND", False):
+                        display.display_static_images()
+                        display.display_static_text()
+                        stats.Weather.stats()  # refresh is needed because time between automated refreshes is usually over 10-15 minutes
             else:
                 # For any other events, the program will stop
                 logger.info("Program will now exit")
@@ -207,6 +216,7 @@ if __name__ == "__main__":
     scheduler.DiskStats()
     scheduler.NetStats()
     scheduler.DateStats()
+    scheduler.WeatherStats()
     scheduler.QueueHandler()
 
     if tray_icon and platform.system() == "Darwin":  # macOS-specific

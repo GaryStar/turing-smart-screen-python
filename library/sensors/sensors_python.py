@@ -24,6 +24,9 @@ import platform
 import sys
 from enum import IntEnum, auto
 from typing import Tuple
+import os, subprocess, re
+import builtins
+from library.utils import Names, approximate_size
 
 # Nvidia GPU
 import GPUtil
@@ -303,3 +306,30 @@ class Net(sensors.Net):
                 logger.warning("Network interface '%s' not found. Check names in config.yaml." % if_name)
 
         return upload_rate, uploaded, download_rate, downloaded
+
+def get_processor_name():
+    if platform.system() == "Windows":
+        return subprocess.check_output(["wmic","cpu","get", "name"]).decode().strip().split("\n")[1]
+    elif platform.system() == "Darwin":
+        os.environ['PATH'] = os.environ['PATH'] + os.pathsep + '/usr/sbin'
+        command ="sysctl -n machdep.cpu.brand_string"
+        return subprocess.check_output(command).strip()
+    elif platform.system() == "Linux":
+        command = "cat /proc/cpuinfo"
+        all_info = subprocess.check_output(command, shell=True).decode().strip()
+        for line in all_info.split("\n"):
+            if "model name" in line:
+                return re.sub( ".*model name.*:", "", line,1)
+    return ""
+
+def get_gpu_type():
+    if GpuAmd.is_available():
+        return "AMD GPU(s)"
+    elif GpuNvidia.is_available():
+        return "NVIDIA GPU(s)"
+    else:
+        return "Unknown GPU(s)"
+
+builtins.names.Cpu = get_processor_name()
+builtins.names.Gpu = get_gpu_type()
+builtins.names.Memory = f"{approximate_size(psutil.virtual_memory().total)} RAM"

@@ -27,6 +27,7 @@ import platform
 import subprocess
 import sys
 import time
+import builtins
 
 try:
     import tkinter
@@ -68,6 +69,9 @@ library.log.logger.setLevel(logging.NOTSET)  # Disable system monitor logging fo
 logger = logging.getLogger('turing-editor')
 logger.setLevel(logging.DEBUG)
 
+from library.utils import Names
+builtins.names = Names()
+
 # Hardcode specific configuration for theme editor
 from library import config
 
@@ -96,11 +100,11 @@ def refresh_theme():
     # Create all static images
     display.display_static_images()
 
+    import library.stats as stats
     # Create all static texts
     display.display_static_text()
 
     # Display all data on screen once
-    import library.stats as stats
     stats.CPU.percentage()
     stats.CPU.frequency()
     stats.CPU.load()
@@ -110,6 +114,7 @@ def refresh_theme():
     stats.Disk.stats()
     stats.Net.stats()
     stats.Date.stats()
+    stats.Weather.stats()
 
 
 if __name__ == "__main__":

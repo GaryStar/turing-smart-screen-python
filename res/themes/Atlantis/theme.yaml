@@ -1,0 +1,263 @@
+---
+display:
+  DISPLAY_ORIENTATION: portrait
+  DISPLAY_RGB_LED: 255, 255, 0
+
+static_images:
+  BACKGROUND:
+    PATH: background.png
+    X: 0
+    Y: 0
+    WIDTH: 320
+    HEIGHT: 480
+static_text:
+  CPU_MODEL:
+    TEXT: names.Cpu
+    X: 35
+    Y: 127
+    FONT: roboto-mono/RobotoMono-Bold.ttf
+    FONT_SIZE: 15
+    FONT_COLOR: 155, 239, 8
+    BACKGROUND_IMAGE: background.png
+  GPU_MODEL:
+    TEXT: names.Gpu
+    X: 35
+    Y: 220
+    FONT: roboto-mono/RobotoMono-Bold.ttf
+    FONT_SIZE: 15
+    FONT_COLOR: 155, 239, 8
+    BACKGROUND_IMAGE: background.png
+  RAM_MODEL:
+    TEXT: names.Memory
+    X: 35
+    Y: 312
+    FONT: roboto-mono/RobotoMono-Bold.ttf
+    FONT_SIZE: 15
+    FONT_COLOR: 155, 239, 8
+    BACKGROUND_IMAGE: background.png
+  DOWNLOAD_RATE:
+    TEXT: DOWNLOAD
+    X: 43
+    Y: 352
+    FONT: roboto-mono/RobotoMono-Bold.ttf
+    FONT_SIZE: 15
+    FONT_COLOR: 155, 239, 8
+    BACKGROUND_IMAGE: background.png
+  UPLOAD_RATE:
+    TEXT: UPLOAD
+    X: 43
+    Y: 391
+    FONT: roboto-mono/RobotoMono-Bold.ttf
+    FONT_SIZE: 15
+    FONT_COLOR: 155, 239, 8
+    BACKGROUND_IMAGE: background.png
+  DISK_USAGE:
+    TEXT: DISK USAGE
+    X: 110
+    Y: 420
+    FONT: roboto-mono/RobotoMono-Bold.ttf
+    FONT_SIZE: 15
+    FONT_COLOR: 155, 239, 8
+    BACKGROUND_IMAGE: background.png
+STATS:
+  CPU:
+    PERCENTAGE:
+      INTERVAL: 1
+      TEXT:
+        SHOW: True
+        SHOW_UNIT: True
+        X: 195
+        Y: 83
+        FONT: roboto-mono/RobotoMono-Bold.ttf
+        FONT_SIZE: 40
+        FONT_COLOR: 50, 200, 250
+        ALERT_VALUE: 80
+        BACKGROUND_IMAGE: background.png
+      GRAPH:
+        SHOW: True
+        X: 35
+        Y: 100
+        WIDTH: 150
+        HEIGHT: 13
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        ALERT_VALUE: 80
+        BAR_COLOR: 50, 200, 250
+        BAR_OUTLINE: True
+        BACKGROUND_IMAGE: background.png
+    FREQUENCY:
+      INTERVAL: 5
+      TEXT:
+        SHOW: True
+        SHOW_UNIT: True
+        X: 90
+        Y: 80
+        FONT: roboto-mono/RobotoMono-Bold.ttf
+        FONT_SIZE: 16
+        FONT_COLOR: 255, 239, 8
+        BACKGROUND_IMAGE: background.png
+    TEMPERATURE:
+      INTERVAL: 5
+      TEXT:
+        SHOW: True
+        SHOW_UNIT: True
+        X: 28
+        Y: 80
+        FONT: roboto-mono/RobotoMono-Bold.ttf
+        FONT_SIZE: 16
+        FONT_COLOR: 50, 200, 250
+        ALERT_VALUE: 70
+        BACKGROUND_IMAGE: background.png
+  GPU:
+    INTERVAL: 5
+    PERCENTAGE:
+      GRAPH:
+        SHOW: True
+        X: 35
+        Y: 192
+        WIDTH: 150
+        HEIGHT: 13
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 50, 200, 250
+        BAR_OUTLINE: True
+        ALERT_VALUE: 90
+        BACKGROUND_IMAGE: background.png
+      TEXT:
+        SHOW: True
+        SHOW_UNIT: True
+        X: 195
+        Y: 177
+        FONT: roboto-mono/RobotoMono-Bold.ttf
+        FONT_SIZE: 40
+        FONT_COLOR: 50, 200, 250
+        ALERT_VALUE: 90
+        BACKGROUND_IMAGE: background.png
+    MEMORY:
+      TEXT:
+        SHOW: True
+        SHOW_UNIT: True
+        X: 90
+        Y: 172
+        FONT: roboto-mono/RobotoMono-Bold.ttf
+        FONT_SIZE: 16
+        FONT_COLOR: 255, 239, 8
+        BACKGROUND_IMAGE: background.png
+    TEMPERATURE:
+      TEXT:
+        SHOW: True
+        SHOW_UNIT: True
+        X: 28
+        Y: 172
+        ALERT_VALUE: 70
+        FONT: roboto-mono/RobotoMono-Bold.ttf
+        FONT_SIZE: 16
+        FONT_COLOR: 50, 200, 250
+        BACKGROUND_IMAGE: background.png
+  MEMORY:
+    INTERVAL: 2
+    VIRTUAL:
+      GRAPH:
+        SHOW: True
+        X: 35
+        Y: 285
+        WIDTH: 150
+        HEIGHT: 13
+        MIN_VALUE: 0
+        MAX_VALUE: 100
+        BAR_COLOR: 50, 200, 250
+        BAR_OUTLINE: True
+        ALERT_VALUE: 80
+        BACKGROUND_IMAGE: background.png
+      USED:
+        SHOW: True
+        SHOW_UNIT: True
+        X: 35
+        Y: 265
+        FONT: roboto-mono/RobotoMono-Bold.ttf
+        FONT_SIZE: 16
+        FONT_COLOR: 50, 200, 250
+        BACKGROUND_IMAGE: background.png
+      FREE:
+        SHOW: True
+        SHOW_UNIT: True
+        X: 115
+        Y: 265
+        FONT: roboto-mono/RobotoMono-Bold.ttf
+        FONT_SIZE: 16
+        FONT_COLOR: 255, 239, 8
+        BACKGROUND_IMAGE: background.png
+      PERCENT_TEXT:
+        SHOW: True
+        SHOW_UNIT: True
+        X: 195
+        Y: 270
+        FONT: roboto-mono/RobotoMono-Bold.ttf
+        FONT_SIZE: 40
+        FONT_COLOR: 50, 200, 250
+        ALERT_VALUE: 80
+        BACKGROUND_IMAGE: background.png
+  DISK:
+    INTERVAL: 10
+    USED:
+      PERCENT_TEXT:
+        SHOW: True
+        SHOW_UNIT: True
+        X: 220
+        Y: 430
+        FONT: roboto-mono/RobotoMono-Bold.ttf
+        FONT_SIZE: 30
+        FONT_COLOR: 50, 200, 250
+        ALERT_VALUE: 90
+        BACKGROUND_IMAGE: background.png
+  NET:
+    INTERVAL: 1
+    ETH:
+      DOWNLOAD:
+        TEXT:
+          SHOW: True
+          X: 128
+          Y: 345
+          FONT: roboto-mono/RobotoMono-Bold.ttf
+          FONT_SIZE: 23
+          FONT_COLOR: 50, 200, 250
+          BACKGROUND_IMAGE: background.png
+      UPLOAD:
+        TEXT:
+          SHOW: True
+          X: 128
+          Y: 383
+          FONT: roboto-mono/RobotoMono-Bold.ttf
+          FONT_SIZE: 23
+          FONT_COLOR: 50, 200, 250
+          BACKGROUND_IMAGE: background.png
+  DATE:
+    INTERVAL: 1
+    HOUR:
+      TEXT:
+        SHOW: True
+        X: 60
+        Y: 18
+        FONT: roboto-mono/RobotoMono-Bold.ttf
+        FONT_SIZE: 40
+        FONT_COLOR: 50, 200, 250
+        BACKGROUND_IMAGE: background.png
+    DAY:
+      TEXT:
+        SHOW: True
+        X: 30
+        Y: 445
+        FONT: roboto-mono/RobotoMono-Bold.ttf
+        FONT_SIZE: 21
+        FONT_COLOR: 200, 200, 0
+        BACKGROUND_IMAGE: background.png
+  WEATHER:
+    INTERVAL: 600
+    TEXT:
+      SHOW: True
+      X: 35
+      Y: 52
+      FONT: roboto-mono/RobotoMono-Bold.ttf
+      FONT_SIZE: 18
+      FONT_COLOR: 150, 200, 200
+      BACKGROUND_IMAGE: background.png

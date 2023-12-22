@@ -57,6 +57,10 @@ except:
     except:
         os._exit(0)
 
+import requests
+import datetime
+from library.utils import WEATHER_UNITS
+
 TURING_MODEL = "Turing Smart Screen"
 USBPCMONITOR_MODEL = "UsbPCMonitor"
 XUANFANG_MODEL = "XuanFang rev. B & flagship"
@@ -142,7 +146,7 @@ class TuringConfigWindow:
     def __init__(self):
         self.window = Tk()
         self.window.title('Turing System Monitor configuration')
-        self.window.geometry("770x550")
+        self.window.geometry("770x580")
         self.window.iconphoto(True, PhotoImage(file="res/icons/monitor-icon-17865/64.png"))
         # When window gets focus again, reload theme preview in case it has been updated by theme editor
         self.window.bind("<FocusIn>", self.on_theme_change)
@@ -158,79 +162,109 @@ class TuringConfigWindow:
         sysmon_label.place(x=320, y=0)
 
         self.model_label = ttk.Label(self.window, text='Smart screen model')
-        self.model_label.place(x=320, y=35)
+        self.model_label.place(x=320, y=30)
         self.model_cb = ttk.Combobox(self.window, values=list(dict.fromkeys((revision_and_size_to_model_map.values()))),
                                      state='readonly')
         self.model_cb.bind('<<ComboboxSelected>>', self.on_model_change)
-        self.model_cb.place(x=500, y=30, width=250)
+        self.model_cb.place(x=500, y=25, width=250)
 
         self.size_label = ttk.Label(self.window, text='Smart screen size')
-        self.size_label.place(x=320, y=75)
+        self.size_label.place(x=320, y=65)
         self.size_cb = ttk.Combobox(self.window, values=size_list, state='readonly')
         self.size_cb.bind('<<ComboboxSelected>>', self.on_size_change)
-        self.size_cb.place(x=500, y=70, width=250)
+        self.size_cb.place(x=500, y=60, width=250)
 
         self.com_label = ttk.Label(self.window, text='COM port')
-        self.com_label.place(x=320, y=115)
+        self.com_label.place(x=320, y=100)
         self.com_cb = ttk.Combobox(self.window, values=get_com_ports(), state='readonly')
-        self.com_cb.place(x=500, y=110, width=250)
+        self.com_cb.place(x=500, y=95, width=250)
 
         self.orient_label = ttk.Label(self.window, text='Orientation')
-        self.orient_label.place(x=320, y=155)
+        self.orient_label.place(x=320, y=135)
         self.orient_cb = ttk.Combobox(self.window, values=list(reverse_map.values()), state='readonly')
-        self.orient_cb.place(x=500, y=150, width=250)
+        self.orient_cb.place(x=500, y=130, width=250)
 
         self.brightness_string = StringVar()
         self.brightness_label = ttk.Label(self.window, text='Brightness')
-        self.brightness_label.place(x=320, y=195)
+        self.brightness_label.place(x=320, y=170)
         self.brightness_slider = ttk.Scale(self.window, from_=0, to=100, orient=HORIZONTAL,
                                            command=self.on_brightness_change)
-        self.brightness_slider.place(x=550, y=195, width=180)
+        self.brightness_slider.place(x=550, y=170, width=180)
         self.brightness_val_label = ttk.Label(self.window, textvariable=self.brightness_string)
-        self.brightness_val_label.place(x=500, y=195)
+        self.brightness_val_label.place(x=500, y=170)
         self.brightness_warning_label = ttk.Label(self.window,
                                                   text="⚠ Turing 3.5\" displays can get hot at high brightness!",
                                                   foreground='#ff8c00')
 
+        self.redraw_label = ttk.Label(self.window, text='on Wake from Sleep')
+        self.redraw_label.place(x=320, y=205)
+        self.redraw_cb_var = BooleanVar(value=False)
+        self.redraw_cb = ttk.Checkbutton(self.window, text = "redraw background", variable = self.redraw_cb_var,
+                                         onvalue = True, offvalue = False)
+        self.redraw_cb.place(x=495, y=200)
+
+        self.separator = ttk.Separator(self.window, orient='horizontal')
+        self.separator.place(x=310, y=240, width=450, height=2)
+
         sysmon_label = ttk.Label(self.window, text='System Monitor Configuration', font='bold')
-        sysmon_label.place(x=320, y=260)
+        sysmon_label.place(x=320, y=250)
 
         self.theme_label = ttk.Label(self.window, text='Theme')
-        self.theme_label.place(x=320, y=300)
+        self.theme_label.place(x=320, y=280)
         self.theme_cb = ttk.Combobox(self.window, state='readonly')
-        self.theme_cb.place(x=500, y=295, width=250)
+        self.theme_cb.place(x=500, y=275, width=250)
         self.theme_cb.bind('<<ComboboxSelected>>', self.on_theme_change)
 
         self.hwlib_label = ttk.Label(self.window, text='Hardware monitoring')
-        self.hwlib_label.place(x=320, y=340)
+        self.hwlib_label.place(x=320, y=315)
         if sys.platform != "win32":
             del hw_lib_map["LHM"]  # LHM is for Windows platforms only
         self.hwlib_cb = ttk.Combobox(self.window, values=list(hw_lib_map.values()), state='readonly')
-        self.hwlib_cb.place(x=500, y=335, width=250)
+        self.hwlib_cb.place(x=500, y=310, width=250)
         self.hwlib_cb.bind('<<ComboboxSelected>>', self.on_hwlib_change)
 
         self.eth_label = ttk.Label(self.window, text='Ethernet interface')
-        self.eth_label.place(x=320, y=380)
+        self.eth_label.place(x=320, y=350)
         self.eth_cb = ttk.Combobox(self.window, values=get_net_if(), state='readonly')
-        self.eth_cb.place(x=500, y=375, width=250)
+        self.eth_cb.place(x=500, y=345, width=250)
 
         self.wl_label = ttk.Label(self.window, text='Wi-Fi interface')
-        self.wl_label.place(x=320, y=420)
+        self.wl_label.place(x=320, y=385)
         self.wl_cb = ttk.Combobox(self.window, values=get_net_if(), state='readonly')
-        self.wl_cb.place(x=500, y=415, width=250)
+        self.wl_cb.place(x=500, y=380, width=250)
+
+        self.w_label = ttk.Label(self.window, text='City (for weather)')
+        self.w_label.place(x=320, y=420)
+        self.w_city = ttk.Entry()
+        self.w_city.place(x=500, y=415, width=185)
+
+        self.test_weather_btn = ttk.Button(self.window, text="Verify", command=lambda: self.weather_test())
+        self.test_weather_btn.place(x=690, y=415, height=30, width=60)
+
+        self.api_label = ttk.Label(self.window, text='OpenWeatherMap API Key')
+        self.api_label.place(x=320, y=455)
+        self.api_key = ttk.Entry()
+        self.api_key.place(x=500, y=450, width=250)
+
+        self.units_label = ttk.Label(self.window, text='Temperature units')
+        self.units_label.place(x=320, y=490)
+        self.units_cb = ttk.Combobox(self.window, values=list(WEATHER_UNITS.keys()))
+        self.units_cb.place(x=500, y=485, width=250)
+
+        self.test_weather_label = ttk.Label(self.window, text="", foreground='#00f')
 
         self.lhm_admin_warning = ttk.Label(self.window,
                                            text="❌ Restart as admin. or select another Hardware monitoring",
                                            foreground='#f00')
 
         self.edit_theme_btn = ttk.Button(self.window, text="Edit theme", command=lambda: self.on_theme_editor_click())
-        self.edit_theme_btn.place(x=310, y=490, height=50, width=130)
+        self.edit_theme_btn.place(x=80, y=440, height=40, width=130)
 
         self.save_btn = ttk.Button(self.window, text="Save settings", command=lambda: self.on_save_click())
-        self.save_btn.place(x=450, y=490, height=50, width=130)
+        self.save_btn.place(x=10, y=500, height=40, width=130)
 
         self.save_run_btn = ttk.Button(self.window, text="Save and run", command=lambda: self.on_saverun_click())
-        self.save_run_btn.place(x=590, y=490, height=50, width=130)
+        self.save_run_btn.place(x=160, y=500, height=40, width=130)
 
         self.config = None
         self.load_config_values()
@@ -291,6 +325,24 @@ class TuringConfigWindow:
         except:
             self.com_cb.current(0)
 
+        try:
+            self.w_city.insert(0, self.config['config']['CITY'])
+        except:
+            self.w_city.insert(0, "")
+
+        try:
+            self.api_key.insert(0, self.config['config']['API_KEY'])
+        except:
+            self.api_key.insert(0, "")
+
+        try:
+            if self.config['config']['WEATHER_UNITS'] == "":
+                self.units_cb.current(0)
+            else:
+                self.units_cb.set(self.config['config']['WEATHER_UNITS'])
+        except:
+            self.units_cb.current(0)
+
         # Guess display size from theme in the configuration
         size = get_theme_size(self.config['config']['THEME'])
         try:
@@ -315,6 +367,11 @@ class TuringConfigWindow:
         except:
             self.brightness_slider.set(50)
 
+        try:
+            self.redraw_cb_var.set(self.config['display']['REDRAW_BACKGROUND'])
+        except:
+            self.redraw_cb_var.set(False)
+
         # Reload content on screen
         self.on_model_change()
         self.on_size_change()
@@ -337,6 +394,10 @@ class TuringConfigWindow:
             self.config['config']['COM_PORT'] = "AUTO"
         else:
             self.config['config']['COM_PORT'] = self.com_cb.get()
+        self.config['config']['CITY'] = self.w_city.get()
+        self.config['config']['API_KEY'] = self.api_key.get()
+        self.config['config']['WEATHER_UNITS'] = self.units_cb.get()
+        self.config['display']['REDRAW_BACKGROUND'] = self.redraw_cb_var.get()
         self.config['display']['REVISION'] = model_and_size_to_revision_map[(self.model_cb.get(), self.size_cb.get())]
         self.config['display']['DISPLAY_REVERSE'] = [k for k, v in reverse_map.items() if v == self.orient_cb.get()][0]
         self.config['display']['BRIGHTNESS'] = int(self.brightness_slider.get())
@@ -401,7 +462,7 @@ class TuringConfigWindow:
             import ctypes
             is_admin = ctypes.windll.shell32.IsUserAnAdmin() != 0
             if (hwlib == "LHM" or hwlib == "AUTO") and not is_admin:
-                self.lhm_admin_warning.place(x=320, y=455)
+                self.lhm_admin_warning.place(x=320, y=545)
                 self.save_run_btn.state(["disabled"])
             else:
                 self.lhm_admin_warning.place_forget()
@@ -414,6 +475,30 @@ class TuringConfigWindow:
         else:
             self.brightness_warning_label.place_forget()
 
+    def weather_test(self):
+        city = self.w_city.get()
+        api_key = self.api_key.get()
+        units = self.units_cb.get()
+        deg = WEATHER_UNITS.get(units, 'metric')
+        weather_data = "City and API Key are needed to fetch weather"
+        if city and api_key:
+            url = f'http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units={units}'
+            response = requests.get(url)
+            if response.status_code == 200:
+                try:
+                    data = response.json()
+                    temp = f"{data['main']['temp']:.0f}{deg}"
+                    feel = f"{data['main']['feels_like']:.0f}{deg}"
+                    desc = data['weather'][0]['main']
+                    now = datetime.datetime.now()
+                    time = f"@{now.hour:02d}:{now.minute:02d}"
+                    weather_data = f"{desc} {temp} ({feel}) {time}    "
+                except Exception as e:
+                    weather_data = f"Error fetching weather: {str(e)}"
+            else:
+                weather_data = f"Error fetching weather: {response.json().get('message')}"
+        self.test_weather_label.config(text = weather_data)
+        self.test_weather_label.place(x=320, y=520)
 
 if __name__ == "__main__":
     configurator = TuringConfigWindow()

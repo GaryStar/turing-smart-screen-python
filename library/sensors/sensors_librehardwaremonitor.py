@@ -33,6 +33,8 @@ from win32api import *
 
 import library.sensors.sensors as sensors
 from library.log import logger
+import builtins
+from library.utils import approximate_size
 
 # Import LibreHardwareMonitor dll to Python
 lhm_dll = os.getcwd() + '\\external\\LibreHardwareMonitor\\LibreHardwareMonitorLib.dll'
@@ -73,8 +75,12 @@ handle.Open()
 for hardware in handle.Hardware:
     if hardware.HardwareType == Hardware.HardwareType.Cpu:
         logger.info("Found CPU: %s" % hardware.Name)
+        builtins.names.Cpu = hardware.Name
     elif hardware.HardwareType == Hardware.HardwareType.Memory:
         logger.info("Found Memory: %s" % hardware.Name)
+        builtins.names.Memory = hardware.Name
+        if str(hardware.Name).startswith("Generic"):
+            builtins.names.Memory = f"{approximate_size(psutil.virtual_memory().total)} {hardware.Name}"
     elif hardware.HardwareType == Hardware.HardwareType.GpuNvidia:
         logger.info("Found Nvidia GPU: %s" % hardware.Name)
     elif hardware.HardwareType == Hardware.HardwareType.GpuAmd:
@@ -159,6 +165,7 @@ def get_gpu_name() -> str:
 
         return gpu_to_use
 
+builtins.names.Gpu = get_gpu_name()
 
 def get_net_interface_and_update(if_name: str) -> Hardware.Hardware:
     for hardware in handle.Hardware:
