@@ -577,7 +577,7 @@ class Weather:
             city = config.CONFIG_DATA['config'].get('CITY', "")
             api_key = config.CONFIG_DATA['config'].get('API_KEY', "")
             units = config.CONFIG_DATA['config'].get('WEATHER_UNITS', "metric")
-            deg = WEATHER_UNITS.get(units, 'metric')
+            deg = WEATHER_UNITS.get(units, '°?')
             if weather_theme_data and city and api_key:
                 url = f'http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units={units}'
                 response = requests.get(url)

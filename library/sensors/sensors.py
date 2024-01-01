@@ -26,11 +26,6 @@ from typing import Tuple
 class Cpu(ABC):
     @staticmethod
     @abstractmethod
-    def name():
-        pass
-
-    @staticmethod
-    @abstractmethod
     def percentage(interval: float) -> float:
         pass
 
@@ -58,11 +53,6 @@ class Cpu(ABC):
 class Gpu(ABC):
     @staticmethod
     @abstractmethod
-    def name():
-        pass
-
-    @staticmethod
-    @abstractmethod
     def stats() -> Tuple[float, float, float, float]:  # load (%) / used mem (%) / used mem (Mb) / temp (°C)
         pass
 
@@ -78,11 +68,6 @@ class Gpu(ABC):
 
 
 class Memory(ABC):
-    @staticmethod
-    @abstractmethod
-    def name():
-        pass
-
     @staticmethod
     @abstractmethod
     def swap_percent() -> float:
