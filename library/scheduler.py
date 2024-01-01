@@ -50,6 +50,10 @@ def async_job(threadname=None):
 
 def schedule(interval):
     """ wrapper to schedule asynchronous threads """
+    def empty(func):
+        return None
+    if interval == 0:
+        return empty
 
     def decorator(func):
         """ Decorator to extend periodic """
@@ -154,7 +158,7 @@ def CustomStats():
 
 
 @async_job("Weather_Stats")
-@schedule(timedelta(seconds=config.THEME_DATA['STATS']['WEATHER'].get("INTERVAL", None)).total_seconds())
+@schedule(timedelta(seconds=config.THEME_DATA['STATS'].get('WEATHER', {}).get("INTERVAL", 0)).total_seconds())
 def WeatherStats():
     # logger.debug("Refresh Weather data")
     stats.Weather.stats()
