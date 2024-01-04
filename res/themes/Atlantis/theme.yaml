@@ -236,7 +236,7 @@ STATS:
     HOUR:
       TEXT:
         SHOW: True
-        X: 60
+        X: 95
         Y: 18
         FONT: roboto-mono/RobotoMono-Bold.ttf
         FONT_SIZE: 40
@@ -255,9 +255,15 @@ STATS:
     INTERVAL: 600
     TEXT:
       SHOW: True
-      X: 35
+      X: 30
       Y: 52
       FONT: roboto-mono/RobotoMono-Bold.ttf
       FONT_SIZE: 18
       FONT_COLOR: 150, 200, 200
+      BACKGROUND_IMAGE: background.png
+    ICON:
+      SHOW: True
+      X: 30
+      Y: 11
+      SCALE: 0.43
       BACKGROUND_IMAGE: background.png

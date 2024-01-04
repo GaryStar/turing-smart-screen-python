@@ -204,6 +204,74 @@ class LcdComm(ABC):
         image = self.open_image(bitmap_path)
         self.DisplayPILImage(image, x, y, width, height)
 
+    def DisplayPNG(
+            self,
+            image: str,
+            x: int = 0,
+            y: int = 0,
+            scale: str = "1",
+            background_color: Tuple[int, int, int] = (255, 255, 255),
+            background_image: str = None,
+    ):
+        # Display a PNG image
+        # Provide the background image path to display image with transparent background
+
+        if isinstance(background_color, str):
+            background_color = tuple(map(int, background_color.split(', ')))
+
+        scale = float(scale)
+
+        assert x <= self.get_width(), 'X coordinate ' + str(x) + ' must be <= display width ' + str(
+            self.get_width())
+        assert y <= self.get_height(), 'Y coordinate ' + str(y) + ' must be <= display height ' + str(
+            self.get_height())
+        assert len(image) > 0, 'Path to the image must not be empty'
+        assert scale > 0, "Scale must be > 0"
+
+        if background_image is None:
+            # solid background
+            bg_image = Image.new('RGB', (self.get_width(), self.get_height()), background_color)
+        else:
+            # background image
+            bg_image = self.open_image(background_image)
+
+        try:
+            image = self.open_image(image)
+        except:
+            logger.error(f"Could not load image {image}")
+            return None
+        
+        # Size of the image in pixels (size of original image) 
+        width, height = image.size 
+
+        newsize = (width, height)
+        if scale != 1.0:
+            newsize = (math.ceil(width * scale), math.ceil(height * scale))
+            image = image.resize(newsize)
+            width, height = newsize
+
+        image = image.convert("RGBA") 
+        bg_image = bg_image.convert("RGBA") 
+
+        d = ImageDraw.Draw(bg_image)
+
+        # Get bounding box
+        left, top, right, bottom = (x, y, x + width, y + height)
+
+        # Paste the image at (x, y) 
+        bg_image.paste(image, (x, y), image)  # the mask is the alpha layer from image
+
+        # Restrict the dimensions if they overflow the display size
+        left = max(left, 0)
+        top = max(top, 0)
+        right = min(right, self.get_width())
+        bottom = min(bottom, self.get_height())
+
+        # Crop bitmap to keep only the part with our image
+        bg_image = bg_image.crop(box=(left, top, right, bottom))
+
+        self.DisplayPILImage(bg_image, left, top)
+
     def DisplayText(
             self,
             text: str,

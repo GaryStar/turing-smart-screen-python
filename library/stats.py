@@ -566,36 +566,59 @@ class Custom:
 class Weather:
     @staticmethod
     def stats():
-        weather_data = ""
-        try:
-            weather_theme_data = config.THEME_DATA['STATS']['WEATHER']['TEXT']
-        except:
-            weather_theme_data = None
-        if HW_SENSORS == "STATIC":
-            weather_data = "Mist +1°C (-1°C) @21:40"
-        else:
-            city = config.CONFIG_DATA['config'].get('CITY', "")
-            api_key = config.CONFIG_DATA['config'].get('API_KEY', "")
-            units = config.CONFIG_DATA['config'].get('WEATHER_UNITS', "metric")
-            deg = WEATHER_UNITS.get(units, '°?')
-            if weather_theme_data and city and api_key:
-                url = f'http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units={units}'
-                response = requests.get(url)
-                if response.status_code == 200:
-                    try:
-                        data = response.json()
-                        temp = f"{data['main']['temp']:.0f}{deg}"
-                        feel = f"{data['main']['feels_like']:.0f}{deg}"
-                        desc = data['weather'][0]['main']
-                        now = datetime.datetime.now()
-                        time = f"@{now.hour:02d}:{now.minute:02d}"
-                        weather_data = f"{desc} {temp} ({feel}) {time}    "
-                    except Exception as e:
-                        logger.error(str(e))
-                        weather_data = "Error fetching weather"
-                else:
-                    logger.error(response.text)
-                    weather_data = response.json().get('message')
+        weather_text, weather_icon = None, None
+        TEXT = config.THEME_DATA['STATS'].get('WEATHER', {}).get('TEXT', {})
+        ICON = config.THEME_DATA['STATS'].get('WEATHER', {}).get('ICON', {})
 
-        if weather_theme_data and weather_data:
-            display_themed_value(theme_data=weather_theme_data, value=weather_data)
+        if TEXT.get("SHOW") or ICON.get("SHOW"):
+            if HW_SENSORS in ["STATIC", "STUB"]:
+                weather_text = "Clouds +1°C (-1°C) @21:40"
+                weather_icon = "02d.png"
+            else:
+                city = config.CONFIG_DATA['config'].get('CITY', "")
+                api_key = config.CONFIG_DATA['config'].get('API_KEY', "")
+                units = config.CONFIG_DATA['config'].get('WEATHER_UNITS', "metric")
+                deg = WEATHER_UNITS.get(units, '°?')
+                if city and api_key:
+                    url = f'http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units={units}'
+                    try:
+                        response = requests.get(url)
+                        if response.status_code == 200:
+                            try:
+                                data = response.json()
+                                temp = f"{data['main']['temp']:.0f}{deg}"
+                                feel = f"{data['main']['feels_like']:.0f}{deg}"
+                                desc = data['weather'][0]['main']
+                                # to remove
+                                ic = ['01','02','03','04','09','10','11','13','50']
+                                dn = ['d', 'n']
+                                import random
+                                data['weather'][0]['icon'] = f"{ic[random.randint(0,8)]}{dn[random.randint(0,1)]}"
+                                #
+                                weather_icon = f"{data['weather'][0]['icon']}.png"
+                                now = datetime.datetime.now()
+                                time = f"@{now.hour:02d}:{now.minute:02d}"
+                                weather_text = f"{desc} {temp} ({feel}) {time}    "
+                            except Exception as e:
+                                logger.error(str(e))
+                                weather_text = "Error fetching weather"
+                        else:
+                            logger.error(response.text)
+                            weather_text = response.json().get('message')
+                    except:
+                        weather_text = "Connection error"
+
+        if ICON and ICON.get("SHOW") and weather_icon:
+            weather_icon_path = os.path.join(config.THEME_DATA['PATH'], "weather_icons", weather_icon)
+            if not os.path.isfile(weather_icon_path):
+                weather_icon_path = os.path.join("res", "icons", "weather", weather_icon)
+            display.lcd.DisplayPNG(
+                image=weather_icon_path,
+                x=ICON.get("X", 0),
+                y=ICON.get("Y", 0),
+                scale=ICON.get('SCALE', '1.0'),
+                background_color=ICON.get("BACKGROUND_COLOR", (255, 255, 255)),
+                background_image=get_theme_file_path(ICON.get("BACKGROUND_IMAGE", None))
+            )
+        if TEXT and TEXT.get("SHOW") and weather_text:
+            display_themed_value(theme_data=TEXT, value=weather_text)

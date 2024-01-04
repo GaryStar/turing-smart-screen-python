@@ -494,7 +494,7 @@ class TuringConfigWindow:
         city = self.w_city.get()
         api_key = self.api_key.get()
         units = self.units_cb.get()
-        deg = WEATHER_UNITS.get(units, 'metric')
+        deg = WEATHER_UNITS.get(units, '°?')
         weather_data = "City and API Key are needed to fetch weather"
         if city and api_key:
             url = f'http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units={units}'

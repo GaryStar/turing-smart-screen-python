@@ -51,7 +51,7 @@ def copy_default(default, theme):
 def load_theme():
     global THEME_DATA
     try:
-        theme_path = "res/themes/" + CONFIG_DATA['config']['THEME'] + "/"
+        theme_path = os.path.join("res", "themes", CONFIG_DATA['config']['THEME']) + os.sep
         logger.info("Loading theme %s from %s" % (CONFIG_DATA['config']['THEME'], theme_path + "theme.yaml"))
         THEME_DATA = load_yaml(theme_path + "theme.yaml")
         THEME_DATA['PATH'] = theme_path
