@@ -589,12 +589,6 @@ class Weather:
                                 temp = f"{data['main']['temp']:.0f}{deg}"
                                 feel = f"{data['main']['feels_like']:.0f}{deg}"
                                 desc = data['weather'][0]['main']
-                                # to remove
-                                ic = ['01','02','03','04','09','10','11','13','50']
-                                dn = ['d', 'n']
-                                import random
-                                data['weather'][0]['icon'] = f"{ic[random.randint(0,8)]}{dn[random.randint(0,1)]}"
-                                #
                                 weather_icon = f"{data['weather'][0]['icon']}.png"
                                 now = datetime.datetime.now()
                                 time = f"@{now.hour:02d}:{now.minute:02d}"
