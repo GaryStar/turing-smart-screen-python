@@ -47,6 +47,9 @@ try:
         import win32api
         import win32con
         import win32gui
+        from ctypes import POINTER, windll, Structure, cast
+        from library.utils import GUID
+        from ctypes.wintypes import HANDLE, DWORD
 
     try:
         import pystray
@@ -68,6 +71,15 @@ builtins.names = Names()
 from library.log import logger
 import library.scheduler as scheduler
 from library.display import display
+
+PBT_POWERSETTINGCHANGE = 0x8013
+GUID_MONITOR_POWER_ON = '{02731015-4510-4526-99E6-E5A17EBD1AEA}'
+
+class POWERBROADCAST_SETTING(Structure):
+    _fields_ = [("PowerSetting", GUID),
+                ("DataLength", DWORD),
+                ("Data", DWORD)]
+
 
 if __name__ == "__main__":
 
@@ -151,7 +163,20 @@ if __name__ == "__main__":
                         # Some models have troubles displaying back the previous bitmap after being turned off/on
                         display.display_static_images()
                         display.display_static_text()
+                        time.sleep(5)  # on wake, network access is not ready immediately
                         stats.Weather.stats()  # refresh is needed because time between automated refreshes is usually over 10-15 minutes
+                elif wParam == PBT_POWERSETTINGCHANGE:
+                    settings = cast(lParam, POINTER(POWERBROADCAST_SETTING)).contents
+                    power_setting = str(settings.PowerSetting)
+                    data = settings.Data
+                    if power_setting == GUID_MONITOR_POWER_ON:
+                        if data == 0:
+                            logger.info('Monitor off')
+                            display.set_brightness(0)
+                        if data == 1:
+                            logger.info('Monitor on')
+                            display.set_brightness(config.CONFIG_DATA["display"]["BRIGHTNESS"])
+                return 0
             else:
                 # For any other events, the program will stop
                 logger.info("Program will now exit")
@@ -261,6 +286,10 @@ if __name__ == "__main__":
                                            0,
                                            hinst,
                                            None)
+
+            windll.user32.RegisterPowerSettingNotification(HANDLE(hwnd),
+                                                           GUID(GUID_MONITOR_POWER_ON),
+                                                           DWORD(0))
             while True:
                 # Receive and dispatch window messages
                 win32gui.PumpWaitingMessages()

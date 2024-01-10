@@ -264,6 +264,6 @@ STATS:
     ICON:
       SHOW: True
       X: 30
-      Y: 11
-      SCALE: 0.43
+      Y: 1
+      SCALE: 0.5
       BACKGROUND_IMAGE: background.png

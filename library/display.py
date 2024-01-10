@@ -90,6 +90,10 @@ class Display:
         # Set orientation
         self.lcd.SetOrientation(_get_theme_orientation())
 
+    def set_brightness(self, value):
+        # Set brightness
+        self.lcd.SetBrightness(value)
+
     def turn_on(self):
         # Turn screen on in case it was turned off previously
         self.lcd.ScreenOn()
