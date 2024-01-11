@@ -29,8 +29,17 @@ import sys
 import time
 import builtins
 
+MIN_PYTHON = (3, 8)
+if sys.version_info < MIN_PYTHON:
+    print("[ERROR] Python %s.%s or later is required." % MIN_PYTHON)
+    try:
+        sys.exit(0)
+    except:
+        os._exit(0)
+
 try:
     import tkinter
+    from PIL import ImageTk
 except:
     print(
         "[ERROR] Tkinter dependency not installed. Please follow troubleshooting page: https://github.com/mathoudebine/turing-smart-screen-python/wiki/Troubleshooting#all-os-tkinter-dependency-not-installed")
@@ -39,13 +48,6 @@ except:
     except:
         os._exit(0)
 
-MIN_PYTHON = (3, 8)
-if sys.version_info < MIN_PYTHON:
-    print("[ERROR] Python %s.%s or later is required." % MIN_PYTHON)
-    try:
-        sys.exit(0)
-    except:
-        os._exit(0)
 
 if len(sys.argv) != 2:
     print("Usage :")
@@ -58,8 +60,6 @@ if len(sys.argv) != 2:
         sys.exit(0)
     except:
         os._exit(0)
-
-from PIL import ImageTk
 
 import library.log
 
