@@ -75,10 +75,11 @@ from library.display import display
 PBT_POWERSETTINGCHANGE = 0x8013
 GUID_MONITOR_POWER_ON = '{02731015-4510-4526-99E6-E5A17EBD1AEA}'
 
-class POWERBROADCAST_SETTING(Structure):
-    _fields_ = [("PowerSetting", GUID),
-                ("DataLength", DWORD),
-                ("Data", DWORD)]
+if platform.system() == "Windows":
+    class POWERBROADCAST_SETTING(Structure):
+        _fields_ = [("PowerSetting", GUID),
+                    ("DataLength", DWORD),
+                    ("Data", DWORD)]
 
 
 if __name__ == "__main__":
